@@ -2,49 +2,143 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Регистрация</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявка</title>
+
+    <style>
+        body {
+            background: #1c1c1c;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .form-container {
+            background: #e63926;
+            padding: 30px 30px;
+            border-radius: 12px;
+            width: 380px;
+            color: #fff;
+        }
+
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: block;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        textarea {
+            height: 70px;
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #fff;
+            color: #000;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #result {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
 
-<form id="leadForm">
-    
-    <label>Имя:</label><br>
-    <input type="text" name="name" required><br><br>
+<div class="form-container">
+    <h2>Рассчитайте стоимость авто<br>из заграницы прямо сейчас!</h2>
 
-    <label>Фамилия:</label><br>
-    <input type="text" name="lastname" required><br><br>
+    <form id="leadForm">
 
-    <label>Почта:</label><br>
-    <input type="email" name="email" required><br><br>
+        <label>Имя</label>
+        <input type="text" id="firstname" required>
 
-    <label>Телефон:</label><br>
-    <input type="text" name="phone" required placeholder="+7XXXXXXXXXX"><br><br>
+        <label>Страна</label>
+        <input type="text" id="country" required>
 
-    <button type="submit">Отправить</button>
-</form>
+        <label>Номер телефона</label>
+        <input type="text" id="phone" required>
 
-<p id="result"></p>
+        <label>Год авто</label>
+        <input type="text" id="car_year">
+
+        <label>Комментарий</label>
+        <textarea id="comment"></textarea>
+
+        <button type="submit">Отправить</button>
+
+        <div id="result"></div>
+
+    </form>
+</div>
 
 <script>
 document.getElementById("leadForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
-    const form = e.target;
     const data = {
-        name: form.name.value,
-        lastname: form.lastname.value,
-        email: form.email.value,
-        phone: form.phone.value
+        firstname: document.getElementById("firstname").value.trim(),
+        country: document.getElementById("country").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        car_year: document.getElementById("car_year").value.trim(),
+        comment: document.getElementById("comment").value.trim()
     };
 
-    const response = await fetch("/send_lead", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
-    });
+    const result = document.getElementById("result");
+    result.innerHTML = "Отправка...";
 
-    const result = await response.json();
-    document.getElementById("result").innerText = "Ответ CRM: " + JSON.stringify(result);
+    try {
+        const res = await fetch("/send_lead", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+            result.style.color = "lightgreen";
+            result.innerHTML = "✔ Лид отправлен!";
+        } else {
+            result.style.color = "yellow";
+            result.innerHTML = "⚠ Ошибка: " + (json.error || JSON.stringify(json));
+        }
+
+    } catch (err) {
+        result.style.color = "red";
+        result.innerHTML = "❌ Ошибка соединения";
+    }
 });
 </script>
 
