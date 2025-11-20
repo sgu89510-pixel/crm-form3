@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 import os
+import time
 
 app = Flask(__name__, static_folder="")
 CORS(app)
@@ -11,54 +12,61 @@ CORS(app)
 def index():
     return send_from_directory(os.path.dirname(os.path.abspath(__file__)), "lead_form.html")
 
-# === ОТПРАВКА ЛИДА В CRM ===
+# === ПРИЁМ ЛИДА И ОТПРАВКА В AMO ===
 @app.route("/send_lead", methods=["POST"])
 def send_lead():
     data = request.json
 
-    # Получение IP клиента
-    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
-    if ip is None or ip.strip() == "":
-        ip = "127.0.0.1"
+    # Получение токена из переменной окружения
+    amo_token = os.getenv("AMO_TOKEN")
+    if not amo_token:
+        return jsonify({"success": False, "error": "TOKEN_NOT_FOUND"})
 
-    crm_url = "https://stormchg.biz/api/external/integration/lead"
+    # Домен CRM
+    amo_domain = "ilyadudin001.amocrm.ru"
+
+    url = f"https://{amo_domain}/api/v4/contacts"
 
     headers = {
-        "Content-Type": "application/json",
-        "x-api-key": "a9e96a13-9d82-465c-a111-085b94756b81"
+        "Authorization": f"Bearer {amo_token}",
+        "Content-Type": "application/json"
     }
 
-    payload = {
-        "affc": "AFF-7HXBU5456B",
-        "bxc": "BX-6MWDHF8F519II",
-        "vtc": "VT-HP8XSRMKVS6E7",
+    # === Данные из формы ===
+    firstname = data.get("firstname", "")
+    lastname = data.get("lastname", "")
+    country = data.get("country", "")
+    phone = data.get("phone", "")
+    year = data.get("year", "")
+    comment = data.get("comment", "")
 
-        "profile": {
-            "firstName": data.get("name", ""),
-            "lastName": data.get("lastname", ""),
-            "email": data.get("email", ""),
-            "password": "AutoGen123!",
-            "phone": data.get("phone", "").replace("+", "").replace(" ", "").replace("-", "")
-        },
+    # === Формируем custom_fields_values ===
+    custom_fields_values = [
+        { "field_id": 1, "values": [ { "value": firstname } ] },
+        { "field_id": 2, "values": [ { "value": country } ] },
+        { "field_id": 3, "values": [ { "value": phone } ] },
+        { "field_id": 4, "values": [ { "value": year } ] },
+        { "field_id": 5, "values": [ { "value": comment } ] },
+    ]
 
-        "ip": ip,
-        "funnel": "kaz_atom",
-        "landingURL": "https://walloram.onrender.com",
-        "geo": "KZ",
-        "lang": "ru",
-        "landingLang": "ru",
-        "userAgent": request.headers.get("User-Agent", "")
-    }
+    payload = [
+        {
+            "first_name": firstname,
+            "last_name": lastname,
+            "custom_fields_values": custom_fields_values
+        }
+    ]
 
     try:
-        response = requests.post(crm_url, headers=headers, json=payload, timeout=30)
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
         return jsonify({
-            "crm_response": response.text,
+            "success": response.status_code == 200,
             "crm_status": response.status_code,
-            "success": response.ok
+            "crm_response": response.text
         })
+
     except Exception as e:
-        return jsonify({"error": str(e), "success": False})
+        return jsonify({"success": False, "error": str(e)})
 
 
 if __name__ == "__main__":
