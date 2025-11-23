@@ -1,45 +1,57 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-import os
 
-app = Flask(__name__, static_folder="")
+app = Flask(__name__)
 CORS(app)
 
-# === ОТДАЧА ФОРМЫ ===
-@app.route("/", methods=["GET"])
-def index():
-    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), "lead_form.html")
+
+@app.route("/")
+def home():
+    return "Server is running"
 
 
-# === ПРИЁМ ЛИДА И ПЕРЕДАЧА В amoCRM ===
-@app.route("/send_lead", methods=["POST"])
-def send_lead():
+@app.route("/submit", methods=["POST"])
+def submit():
     data = request.json
 
-    # ===== собираем нужные данные =====
-    payload = {
-        "name": data.get("name", ""),
-        "phone": data.get("phone", ""),
-        "country": data.get("country", ""),
-        "car_year": data.get("car_year", ""),
-        "comment": data.get("comment", "")
+    name = data.get("name", "")
+    country = data.get("country", "")
+    phone = data.get("phone", "")
+    car_year = data.get("car_year", "")
+    comment = data.get("comment", "")
+
+    amo_url = "https://ilyadudin001.amocrm.ru/api/v4/contacts"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJh..."
     }
 
-    # ===== отправляем POST в их import_lead.php =====
-    crm_url = "https://ilyadudin001.amocrm.ru/import_lead.php"
+    payload = [
+        {
+            "first_name": name,
+            "custom_fields_values": [
+                {"field_id": 271316, "values": [{"value": country}]},
+                {"field_id": 271317, "values": [{"value": phone}]},
+                {"field_id": 271318, "values": [{"value": car_year}]},
+                {"field_id": 271319, "values": [{"value": comment}]},
+            ]
+        }
+    ]
 
     try:
-        response = requests.post(crm_url, data=payload, timeout=20)
+        r = requests.post(amo_url, headers=headers, json=payload)
         return jsonify({
-            "crm_response": response.text,
-            "crm_status": response.status_code,
-            "success": response.ok
+            "success": r.ok,
+            "crm_status": r.status_code,
+            "crm_response": r.text
         })
     except Exception as e:
-        return jsonify({"error": str(e), "success": False})
+        return jsonify({"success": False, "error": str(e)})
 
 
 if __name__ == "__main__":
+    import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
