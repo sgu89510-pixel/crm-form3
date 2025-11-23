@@ -2,142 +2,85 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заявка</title>
-
+    <title>Форма регистрации</title>
     <style>
-        body {
-            background: #1c1c1c;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            padding: 40px;
-        }
-
-        .form-container {
-            background: #e63926;
-            padding: 30px 30px;
-            border-radius: 12px;
-            width: 380px;
-            color: #fff;
-        }
-
-        .form-container h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            line-height: 1.3;
-        }
-
-        label {
-            font-size: 14px;
-            margin-bottom: 5px;
-            display: block;
-            font-weight: bold;
-        }
-
+        body { font-family: Arial; background: #f3f3f3; }
+        .box { width: 400px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 10px; }
         input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: none;
-            margin-bottom: 15px;
-            font-size: 15px;
+            width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc;
         }
-
-        textarea {
-            height: 70px;
-            resize: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: #fff;
-            color: #000;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        #result {
-            margin-top: 15px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-        }
+        button { width: 100%; padding: 12px; margin-top: 15px; background: dodgerblue; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #result { text-align: center; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
-
 <body>
 
-<div class="form-container">
-    <h2>Рассчитайте стоимость авто<br>из заграницы прямо сейчас!</h2>
+<div class="box">
+    <h2>Регистрация</h2>
 
     <form id="leadForm">
 
-        <label>Имя</label>
-        <input type="text" id="firstname" required>
+        <input type="text" id="name" placeholder="Имя" required>
 
-        <label>Страна</label>
-        <input type="text" id="country" required>
+        <input type="text" id="country" placeholder="Страна" required>
 
-        <label>Номер телефона</label>
-        <input type="text" id="phone" required>
+        <input type="tel" id="phone" placeholder="+7XXXXXXXXXX" required>
 
-        <label>Год авто</label>
-        <input type="text" id="car_year">
+        <input type="text" id="car_year" placeholder="Год авто" required>
 
-        <label>Комментарий</label>
-        <textarea id="comment"></textarea>
+        <textarea id="comment" placeholder="Комментарий"></textarea>
 
         <button type="submit">Отправить</button>
 
         <div id="result"></div>
-
     </form>
 </div>
+
 
 <script>
 document.getElementById("leadForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
+    const result = document.getElementById("result");
+    result.innerHTML = "⏳ Отправка...";
+
+    // ---- ВАЛИДАЦИЯ ТЕЛЕФОНА ----
+    const phone = document.getElementById("phone").value.trim();
+    if (!/^\+7\d{10}$/.test(phone)) {
+        result.innerHTML = "❌ Телефон должен быть в формате +7XXXXXXXXXX";
+        result.style.color = "red";
+        return;
+    }
+
+    // ---- СБОР ДАННЫХ ----
     const data = {
-        firstname: document.getElementById("firstname").value.trim(),
+        name: document.getElementById("name").value.trim(),
         country: document.getElementById("country").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
+        phone: phone,
         car_year: document.getElementById("car_year").value.trim(),
         comment: document.getElementById("comment").value.trim()
     };
 
-    const result = document.getElementById("result");
-    result.innerHTML = "Отправка...";
-
     try {
-        const res = await fetch("/send_lead", {
+        const response = await fetch("/send_lead", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         });
 
-        const json = await res.json();
+        const json = await response.json();
 
         if (json.success) {
-            result.style.color = "lightgreen";
-            result.innerHTML = "✔ Лид отправлен!";
+            result.innerHTML = "✅ Лид успешно отправлен!";
+            result.style.color = "green";
         } else {
-            result.style.color = "yellow";
-            result.innerHTML = "⚠ Ошибка: " + (json.error || JSON.stringify(json));
+            result.innerHTML = "❌ Ошибка: " + JSON.stringify(json.crm_response);
+            result.style.color = "red";
         }
 
     } catch (err) {
-        result.style.color = "red";
         result.innerHTML = "❌ Ошибка соединения";
+        result.style.color = "red";
     }
 });
 </script>
