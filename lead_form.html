@@ -1,125 +1,160 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Форма заявки</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            padding: 30px;
-        }
-        .container {
-            background: white;
-            padding: 25px;
-            width: 380px;
-            margin: auto;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            margin-top: 8px;
-            margin-bottom: 18px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
-        }
-        button {
-            width: 100%;
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #005ec4;
-        }
-        #response {
-            margin-top: 20px;
-            padding: 15px;
-            display: none;
-            border-radius: 6px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Форма заявки</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Стили -->
+<style>
+    body {
+        background: #f5f7fa;
+        font-family: Arial, sans-serif;
+    }
+    .form-box {
+        width: 90%;
+        max-width: 450px;
+        background: #fff;
+        margin: 40px auto;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+    .form-box h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+    }
+    input, select, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        font-size: 15px;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        font-size: 17px;
+        color: #fff;
+        background: #007bff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    button:hover {
+        background: #0069d9;
+    }
+    .result {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 6px;
+        display: none;
+        font-weight: bold;
+    }
+    .success {
+        background: #d4f8d4;
+        color: #0d7d0d;
+    }
+    .error {
+        background: #ffd4d4;
+        color: #b30000;
+    }
+</style>
 </head>
 <body>
 
-<div class="container">
+<div class="form-box">
     <h2>Форма заявки</h2>
 
-    <form id="leadForm">
-        <label>Имя *</label>
-        <input type="text" id="first_name" required>
+    <label>Имя *</label>
+    <input id="name" required>
 
-        <label>Фамилия *</label>
-        <input type="text" id="last_name" required>
+    <label>Фамилия *</label>
+    <input id="lastname" required>
 
-        <label>Страна *</label>
-        <input type="text" id="country" required>
+    <label>Страна *</label>
+    <select id="country" required>
+        <option value="">Выберите страну</option>
+        <option value="США">США</option>
+        <option value="Китай">Китай</option>
+        <option value="Европа">Европа</option>
+    </select>
 
-        <label>Телефон *</label>
-        <input type="text" id="phone" placeholder="+7XXXXXXXXXX" required
-               pattern="^\+7\d{10}$"
-               title="Введите номер строго в формате +7XXXXXXXXXX">
+    <label>Телефон *</label>
+    <input id="phone" required placeholder="+7XXXXXXXXXX">
 
-        <label>Год *</label>
-        <input type="number" id="year" required>
+    <label>Год авто *</label>
+    <select id="car_year" required>
+        <option value="">Выберите год</option>
+        <script>
+            for (let y = 2025; y >= 2013; y--) {
+                document.write(`<option value="${y}">${y}</option>`);
+            }
+        </script>
+    </select>
 
-        <label>Комментарий</label>
-        <textarea id="comment"></textarea>
+    <label>Комментарий</label>
+    <textarea id="comment" rows="3"></textarea>
 
-        <button type="submit">Отправить</button>
-    </form>
+    <button onclick="sendLead()">Отправить</button>
 
-    <div id="response"></div>
+    <div id="result" class="result"></div>
 </div>
 
-
 <script>
-document.getElementById("leadForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
+// Маска телефона
+document.getElementById("phone").addEventListener("input", function () {
+    let v = this.value.replace(/\D/g, "");
+    if (!v.startsWith("7")) v = "7" + v;
+    this.value = "+" + v;
+});
+
+// Отправка данных
+async function sendLead() {
 
     const data = {
-        first_name: document.getElementById("first_name").value,
-        last_name: document.getElementById("last_name").value,
+        name: document.getElementById("name").value.trim(),
+        lastname: document.getElementById("lastname").value.trim(),
         country: document.getElementById("country").value,
-        phone: document.getElementById("phone").value,
-        year: document.getElementById("year").value,
-        comment: document.getElementById("comment").value
+        phone: document.getElementById("phone").value.trim(),
+        car_year: document.getElementById("car_year").value,
+        comment: document.getElementById("comment").value.trim()
     };
 
-    let responseBox = document.getElementById("response");
-    responseBox.style.display = "block";
-    responseBox.style.background = "#fff3cd";
-    responseBox.innerHTML = "⏳ Отправка...";
+    const box = document.getElementById("result");
+    box.style.display = "block";
+    box.className = "result";
+    box.innerHTML = "⏳ Отправляется...";
 
     try {
-        const res = await fetch("/submit", {
+        const res = await fetch("/send_lead", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         });
 
-        const result = await res.json();
+        const json = await res.json();
 
-        if (result.success) {
-            responseBox.style.background = "#d4edda";
-            responseBox.innerHTML = "✅ Успех! Лид отправлен.";
+        if (json.success) {
+            box.classList.add("success");
+            box.innerHTML = "✔ Заявка успешно отправлена!";
         } else {
-            responseBox.style.background = "#f8d7da";
-            responseBox.innerHTML = "⚠️ Ошибка: " + JSON.stringify(result);
+            box.classList.add("error");
+            box.innerHTML = "❌ Ошибка: " + (json.error || json.crm_response);
         }
 
-    } catch (err) {
-        responseBox.style.background = "#f8d7da";
-        responseBox.innerHTML = "❌ Ошибка соединения: " + err;
+    } catch (e) {
+        box.classList.add("error");
+        box.innerHTML = "❌ Ошибка отправки";
     }
-});
+}
 </script>
 
 </body>
