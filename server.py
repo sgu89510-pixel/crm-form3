@@ -8,20 +8,14 @@ app = Flask(__name__)
 def index():
     return send_from_directory("", "lead_form.html")
 
-
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
-        # Принимаем или JSON, или обычную форму
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form.to_dict()
+        data = request.form.to_dict()
 
         if not data:
             return jsonify({"success": False, "error": "Нет данных"}), 400
 
-        # Формируем form-url-encoded ТОЛЬКО ТАК CRM ПРИНИМАЕТ
         payload = {
             "name": data.get("name", ""),
             "country": data.get("country", ""),
@@ -32,12 +26,7 @@ def submit():
 
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-
-        # ОТПРАВКА КАК ОНИ ХОТЯТ
-        response = requests.post(CRM_URL, data=payload, headers=headers)
+        response = requests.post(CRM_URL, data=payload)
 
         return jsonify({
             "success": True,
