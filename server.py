@@ -5,13 +5,11 @@ import os
 app = Flask(__name__)
 
 
-# === ОТДАЕМ lead_form.html ПО АДРЕСУ "/" ===
 @app.route("/")
 def index():
     return send_from_directory("", "lead_form.html")
 
 
-# === ПРИЕМ ДАННЫХ ИЗ ФОРМЫ ===
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
@@ -24,7 +22,7 @@ def submit():
         car_year = data.get("car_year", "")
         comment = data.get("comment", "")
 
-        # Формируем массив как в PHP
+        # Формируем POST, как требует PHP ($_POST)
         incomingLead = {
             "name": f"{name} {lastname}",
             "country": country,
@@ -33,17 +31,17 @@ def submit():
             "comment": comment
         }
 
-        # >>> ВАЖНО: твой PHP import_lead.php принимает JSON <<<
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
+        # 👇 ВАЖНО: отправляем form-data, не JSON
         response = requests.post(
             CRM_URL,
-            json=incomingLead,                       # 👈 JSON отправка
-            headers={"Content-Type": "application/json"}
+            data=incomingLead,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
         )
 
         return jsonify({
-            "success": response.status_code == 200,
+            "success": response.status_code in [200, 201],
             "crm_status": response.status_code,
             "crm_response": response.text
         })
@@ -52,7 +50,6 @@ def submit():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-# === Запуск на Render ===
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
