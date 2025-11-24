@@ -12,20 +12,16 @@ def index():
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
-        # Принимаем JSON, form-data и urlencoded — БЕЗ ОШИБКИ 415
+        # Принимаем JSON или form-data
         if request.is_json:
             data = request.get_json()
         else:
             data = request.form.to_dict()
 
-        # ПОДСТРАХОВКА
         if not data:
-            return jsonify({
-                "success": False,
-                "error": "Нет данных. Отправьте снова."
-            }), 400
+            return jsonify({"success": False, "error": "Нет данных"}), 400
 
-        # Собираем payload
+        # Формируем JSON ПРАВИЛЬНО для CRM
         payload = {
             "name": data.get("name", ""),
             "country": data.get("country", ""),
@@ -34,11 +30,15 @@ def submit():
             "comment": data.get("comment", "")
         }
 
-        # URL CRM
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        # ОТПРАВЛЯЕМ КАК HTML-ФОРМА (НЕ JSON!)
-        response = requests.post(CRM_URL, data=payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+
+        # ВАЖНО ❗ ТУТ ДОЛЖНО БЫТЬ json=payload
+        response = requests.post(CRM_URL, json=payload, headers=headers)
 
         return jsonify({
             "success": True,
