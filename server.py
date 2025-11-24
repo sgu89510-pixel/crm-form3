@@ -4,27 +4,26 @@ import os
 
 app = Flask(__name__)
 
-# === 1. Отдаем HTML форму ===
+# ===== 1. ОТДАЁМ lead_form.html =====
 @app.route("/")
 def index():
     return send_from_directory("", "lead_form.html")
 
 
-# === 2. Приём данных формы ===
+# ===== 2. ПРИЁМ ДАННЫХ ИЗ ФОРМЫ =====
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
-        data = request.json
+        # Берём form-data
+        name = request.form.get("name", "")
+        lastname = request.form.get("lastname", "")
+        country = request.form.get("country", "")
+        phone = request.form.get("phone", "")
+        car_year = request.form.get("car_year", "")
+        comment = request.form.get("comment", "")
 
-        name = data.get("name", "")
-        lastname = data.get("lastname", "")
-        country = data.get("country", "")
-        phone = data.get("phone", "")
-        car_year = data.get("car_year", "")
-        comment = data.get("comment", "")
-
-        # Формируем payload, КОТОРЫЙ ИХ API ОЖИДАЕТ
-        incomingLead = {
+        # Формируем то, что примет их PHP
+        payload = {
             "name": f"{name} {lastname}",
             "country": country,
             "phone": phone,
@@ -32,11 +31,11 @@ def submit():
             "comment": comment
         }
 
-        # === ВАЖНО ===
+        # URL их API (тот, что прислал IT Support)
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        # Отправляем POST на их сервер
-        response = requests.post(CRM_URL, json=incomingLead, timeout=10)
+        # ОТПРАВКА ДАННЫХ КАК form-data
+        response = requests.post(CRM_URL, data=payload)
 
         return jsonify({
             "success": True,
@@ -48,7 +47,7 @@ def submit():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-# === Запуск сервера (Render) ===
+# ===== 3. ДЛЯ РАБОТЫ НА RENDER =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
