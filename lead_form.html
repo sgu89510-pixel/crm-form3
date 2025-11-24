@@ -116,7 +116,6 @@ document.getElementById("phone").addEventListener("input", function () {
 });
 
 // Отправка данных
-<script>
 async function sendLead() {
     const box = document.getElementById("result");
     box.style.display = "block";
@@ -133,7 +132,6 @@ async function sendLead() {
     };
 
     try {
-        // ОТПРАВЛЯЕМ ТОЛЬКО form-data !!! (CRM требует)
         const res = await fetch("/submit", {
             method: "POST",
             headers: {
