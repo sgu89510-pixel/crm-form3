@@ -4,19 +4,28 @@ import os
 
 app = Flask(__name__)
 
-# 1 — отдаём HTML форму
 @app.route("/")
 def index():
     return send_from_directory("", "lead_form.html")
 
 
-# 2 — принимаем данные формы и отправляем на их PHP endpoint
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
-        data = request.json
-        
-        # Достаём данные из формы
+        # Принимаем JSON, form-data и urlencoded — БЕЗ ОШИБКИ 415
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+
+        # ПОДСТРАХОВКА
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "Нет данных. Отправьте снова."
+            }), 400
+
+        # Собираем payload
         payload = {
             "name": data.get("name", ""),
             "country": data.get("country", ""),
@@ -25,9 +34,10 @@ def submit():
             "comment": data.get("comment", "")
         }
 
-        # Их PHP endpoint — принимает ТОЛЬКО form-data !!!
+        # URL CRM
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
+        # ОТПРАВЛЯЕМ КАК HTML-ФОРМА (НЕ JSON!)
         response = requests.post(CRM_URL, data=payload)
 
         return jsonify({
@@ -40,7 +50,6 @@ def submit():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-# 3 — Render host
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
