@@ -35,9 +35,12 @@ def submit():
         # === URL их PHP-скрипта ===
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        # === ДЕЛАЕМ POST ===
-        response = requests.post(CRM_URL, data=incomingLead)
-
+      # === ДЕЛАЕМ POST К CRM В JSON ===
+response = requests.post(
+    CRM_URL,
+    json=incomingLead,
+    headers={"Content-Type": "application/json"}
+)
         # === Правильный success ===
         success = (response.status_code == 200)
 
