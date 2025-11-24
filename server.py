@@ -4,13 +4,13 @@ import os
 
 app = Flask(__name__)
 
-# === РУТ ОТДАЕТ ФОРМУ ===
+# === 1. Отдаем HTML форму ===
 @app.route("/")
 def index():
     return send_from_directory("", "lead_form.html")
 
 
-# === ПРИЕМ ДАННЫХ ИЗ ФОРМЫ ===
+# === 2. Приём данных формы ===
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
@@ -23,6 +23,7 @@ def submit():
         car_year = data.get("car_year", "")
         comment = data.get("comment", "")
 
+        # Формируем payload, КОТОРЫЙ ИХ API ОЖИДАЕТ
         incomingLead = {
             "name": f"{name} {lastname}",
             "country": country,
@@ -31,12 +32,14 @@ def submit():
             "comment": comment
         }
 
+        # === ВАЖНО ===
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        response = requests.post(CRM_URL, json=incomingLead)
+        # Отправляем POST на их сервер
+        response = requests.post(CRM_URL, json=incomingLead, timeout=10)
 
         return jsonify({
-            "success": response.status_code == 200,
+            "success": True,
             "crm_status": response.status_code,
             "crm_response": response.text
         })
@@ -45,6 +48,7 @@ def submit():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# === Запуск сервера (Render) ===
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
