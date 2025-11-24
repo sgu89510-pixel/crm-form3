@@ -34,9 +34,13 @@ def submit():
 
         # === ВАЖНО ===
         # Сюда ставь их URL (import_lead.php)
-        CRM_URL = "https://ilyadudin001.amocrm.ru/import_lead.php"
+        CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        response = requests.post(CRM_URL, data=incomingLead)
+        response = requests.post(
+    CRM_URL,
+    json=incomingLead,          # правильный формат
+    headers={"Content-Type": "application/json"}
+)
 
         return jsonify({
             "success": True,
