@@ -4,26 +4,27 @@ import os
 
 app = Flask(__name__)
 
-# ===== 1. ОТДАЁМ lead_form.html =====
+# === 1. ОТДАЁМ lead_form.html ===
 @app.route("/")
 def index():
     return send_from_directory("", "lead_form.html")
 
-
-# ===== 2. ПРИЁМ ДАННЫХ ИЗ ФОРМЫ =====
+# === 2. ПРИЁМ POST ДАННЫХ ОТ ФОРМЫ ===
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
-        # Берём form-data
-        name = request.form.get("name", "")
-        lastname = request.form.get("lastname", "")
-        country = request.form.get("country", "")
-        phone = request.form.get("phone", "")
-        car_year = request.form.get("car_year", "")
-        comment = request.form.get("comment", "")
+        data = request.json
 
-        # Формируем то, что примет их PHP
-        payload = {
+        name = data.get("name", "")
+        lastname = data.get("lastname", "")
+        country = data.get("country", "")
+        phone = data.get("phone", "")
+        car_year = data.get("car_year", "")
+        comment = data.get("comment", "")
+
+        # ===== ВАЖНО =====
+        # Формируем запрос ТАК, как требует их PHP-скрипт
+        incomingLead = {
             "name": f"{name} {lastname}",
             "country": country,
             "phone": phone,
@@ -31,14 +32,17 @@ def submit():
             "comment": comment
         }
 
-        # URL их API (тот, что прислал IT Support)
+        # === URL их PHP-скрипта ===
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        # ОТПРАВКА ДАННЫХ КАК form-data
-        response = requests.post(CRM_URL, data=payload)
+        # === ДЕЛАЕМ POST ===
+        response = requests.post(CRM_URL, data=incomingLead)
+
+        # === Правильный success ===
+        success = (response.status_code == 200)
 
         return jsonify({
-            "success": True,
+            "success": success,
             "crm_status": response.status_code,
             "crm_response": response.text
         })
@@ -47,7 +51,7 @@ def submit():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-# ===== 3. ДЛЯ РАБОТЫ НА RENDER =====
+# === 3. ЗАПУСК ДЛЯ RENDER ===
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
