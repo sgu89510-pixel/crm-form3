@@ -15,29 +15,20 @@ def submit():
     try:
         data = request.json
 
-        name = data.get("name", "")
-        lastname = data.get("lastname", "")
-        country = data.get("country", "")
-        phone = data.get("phone", "")
-        car_year = data.get("car_year", "")
-        comment = data.get("comment", "")
-
-        # Формируем POST, как требует PHP ($_POST)
         incomingLead = {
-            "name": f"{name} {lastname}",
-            "country": country,
-            "phone": phone,
-            "car_year": car_year,
-            "comment": comment
+            "name": data.get("name", "") + " " + data.get("lastname", ""),
+            "country": data.get("country", ""),
+            "phone": data.get("phone", ""),
+            "car_year": data.get("car_year", ""),
+            "comment": data.get("comment", "")
         }
 
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
-        # 👇 ВАЖНО: отправляем form-data, не JSON
         response = requests.post(
             CRM_URL,
-            data=incomingLead,
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            json=incomingLead,                     # 👈 JSON ПРАВИЛЬНО
+            headers={"Content-Type": "application/json"}  # 👈 обязательно!
         )
 
         return jsonify({
