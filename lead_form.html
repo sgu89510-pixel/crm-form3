@@ -116,31 +116,30 @@ document.getElementById("phone").addEventListener("input", function () {
 });
 
 // Отправка данных
+<script>
 async function sendLead() {
-    const res = await fetch("/submit", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
+    const box = document.getElementById("result");
+    box.style.display = "block";
+    box.className = "result";
+    box.innerHTML = "⏳ Отправка...";
+
+    const data = {
         name: document.getElementById("name").value.trim(),
         lastname: document.getElementById("lastname").value.trim(),
         country: document.getElementById("country").value.trim(),
         phone: document.getElementById("phone").value.trim(),
         car_year: document.getElementById("car_year").value.trim(),
         comment: document.getElementById("comment").value.trim()
-    })
-});
-
-    const box = document.getElementById("result");
-    box.style.display = "block";
-    box.className = "result";
-    box.innerHTML = "⏳ Отправка...";
+    };
 
     try {
+        // ОТПРАВЛЯЕМ ТОЛЬКО form-data !!! (CRM требует)
         const res = await fetch("/submit", {
             method: "POST",
-            body: new URLSearchParams(data)  // IMPORTANT: form-data
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams(data)
         });
 
         const json = await res.json();
