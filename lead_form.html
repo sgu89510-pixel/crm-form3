@@ -117,14 +117,20 @@ document.getElementById("phone").addEventListener("input", function () {
 
 // Отправка данных
 async function sendLead() {
-    const data = {
+    const res = await fetch("/submit", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
         name: document.getElementById("name").value.trim(),
         lastname: document.getElementById("lastname").value.trim(),
         country: document.getElementById("country").value.trim(),
         phone: document.getElementById("phone").value.trim(),
         car_year: document.getElementById("car_year").value.trim(),
         comment: document.getElementById("comment").value.trim()
-    };
+    })
+});
 
     const box = document.getElementById("result");
     box.style.display = "block";
