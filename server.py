@@ -12,7 +12,7 @@ def index():
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
-        # Принимаем JSON или form-data
+        # Принимаем или JSON, или обычную форму
         if request.is_json:
             data = request.get_json()
         else:
@@ -21,7 +21,7 @@ def submit():
         if not data:
             return jsonify({"success": False, "error": "Нет данных"}), 400
 
-        # Формируем JSON ПРАВИЛЬНО для CRM
+        # Формируем form-url-encoded ТОЛЬКО ТАК CRM ПРИНИМАЕТ
         payload = {
             "name": data.get("name", ""),
             "country": data.get("country", ""),
@@ -33,12 +33,11 @@ def submit():
         CRM_URL = "http://144.124.251.253/api/v1/Lead"
 
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Content-Type": "application/x-www-form-urlencoded"
         }
 
-        # ВАЖНО ❗ ТУТ ДОЛЖНО БЫТЬ json=payload
-        response = requests.post(CRM_URL, json=payload, headers=headers)
+        # ОТПРАВКА КАК ОНИ ХОТЯТ
+        response = requests.post(CRM_URL, data=payload, headers=headers)
 
         return jsonify({
             "success": True,
