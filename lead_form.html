@@ -40,7 +40,7 @@ document.getElementById("leadForm").addEventListener("submit", async function(e)
         phone: form.phone.value
     };
 
-    const res = await fetch("/send_lead", {
+    const res = await fetch("/submit", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
