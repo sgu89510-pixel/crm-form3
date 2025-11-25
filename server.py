@@ -23,16 +23,16 @@ def send_lead():
     else:
         ip = "8.8.8.8"     # запасной IP, допустимый CRM
 
-    crm_url = "https://stormchg.biz/api/external/integration/lead"
+    crm_url = "https://https://symbios.hn-crm.com/api/external/integration/lead"
 
     headers = {
         "Content-Type": "application/json",
-        "x-api-key": "a9e96a13-9d82-465c-a111-085b94756b81"
+        "x-api-key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
     }
 
     payload = {
-        "affc": "AFF-7HXBU5456B",
-        "bxc": "BX-6MWDHF8F519II",
+        "affc": "AFF-O20FT4UUAO",
+        "bxc": "BX-CL0XOBD3BRQ48",
         "vtc": "VT-HP8XSRMKVS6E7",
 
         "profile": {
@@ -44,8 +44,8 @@ def send_lead():
         },
 
         "ip": ip,
-        "funnel": "kaz_atom",
-        "landingURL": "https://punk2077.onrender.com",
+        "funnel": "AtomKz",
+        "landingURL": "https://mercedes-4371.onrender.com",
         "geo": "KZ",
         "lang": "ru",
         "landingLang": "ru",
