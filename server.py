@@ -8,16 +8,21 @@ app = Flask(__name__)
 def index():
     return send_from_directory("", "lead_form.html")
 
-@app.route("/send_lead", methods=["POST"])
-def send_lead():
+
+@app.route("/submit", methods=["POST"])
+def submit():
     try:
-        data = request.json
+        data = request.form.to_dict()
 
         if not data:
             return jsonify({"success": False, "error": "Нет данных"}), 400
 
-        # IP клиента
-        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+        # Получаем IP пользователя корректно
+        forwarded = request.headers.get("X-Forwarded-For", "")
+        if forwarded:
+            ip = forwarded.split(",")[0]
+        else:
+            ip = request.remote_addr
 
         payload = {
             "affc": "AFF-O20FT4UUAO",
@@ -38,18 +43,19 @@ def send_lead():
             "geo": "KZ",
             "lang": "ru",
             "landingLang": "ru",
+
             "userAgent": request.headers.get("User-Agent"),
             "comment": None
         }
 
-        CRM_URL = "https://symbios.hn-crm.com/api/v1/lead/create"
+        CRM_URL = "https://symbios.hn-crm.com/api/external/integration/lead"
 
         headers = {
             "Content-Type": "application/json",
-            "Api-Key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
+            "x-api-key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
         }
 
-        response = requests.post(CRM_URL, json=payload, headers=headers, timeout=20)
+        response = requests.post(CRM_URL, json=payload, headers=headers, timeout=25)
 
         return jsonify({
             "success": True,
