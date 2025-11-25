@@ -8,6 +8,7 @@ app = Flask(__name__)
 def index():
     return send_from_directory("", "lead_form.html")
 
+
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
@@ -33,10 +34,10 @@ def submit():
             "geo": "KZ",
             "lang": "ru",
             "landingLang": "ru",
-            "comment": "",
+            "comment": None
         }
 
-        CRM_URL = "https://symbios.hn-crm.com/api/lead/create"  # ← КРИТИЧЕСКИ ВАЖНО
+        CRM_URL = "https://symbios.hn-crm.com/api/v1/lead/create"
 
         headers = {
             "Content-Type": "application/json",
@@ -53,6 +54,7 @@ def submit():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
