@@ -19,7 +19,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.form-box h2 {
+h2 {
     text-align: center;
     margin-bottom: 20px;
 }
@@ -85,18 +85,16 @@ button:hover {
 <button onclick="sendLead()">Отправить</button>
 
 <div id="result" class="result"></div>
-
 </div>
 
 <script>
-// Маска телефона +7
+// Маска телефона
 document.getElementById("phone").addEventListener("input", function () {
     let v = this.value.replace(/\D/g, "");
     if (!v.startsWith("7")) v = "7" + v;
     this.value = "+" + v;
 });
 
-// Отправка
 async function sendLead() {
     const result = document.getElementById("result");
     result.style.display = "block";
@@ -113,6 +111,9 @@ async function sendLead() {
     try {
         const res = await fetch("/submit", {
             method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
             body: new URLSearchParams(data)
         });
 
@@ -120,10 +121,12 @@ async function sendLead() {
 
         if (json.success) {
             result.classList.add("success");
-            result.innerHTML = "✔ Заявка успешно отправлена<br>Статус CRM: " + json.crm_status;
+            result.innerHTML =
+                "✔ Заявка успешно отправлена<br>Статус CRM: " + json.crm_status;
         } else {
             result.classList.add("error");
-            result.innerHTML = "✘ Ошибка CRM: " + (json.error || json.crm_response);
+            result.innerHTML =
+                "✘ Ошибка CRM: " + (json.error || json.crm_response);
         }
 
     } catch (e) {
