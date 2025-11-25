@@ -21,12 +21,12 @@ def send_lead():
     else:
         ip = request.remote_addr
 
-    crm_url = "https://symbios.hn-crm.com/api/v1/lead/create"
+    CRM_URL = "https://symbios.hn-crm.com/api/external/integration/lead"
 
-    headers = {
-        "Content-Type": "application/json",
-        "Api-Key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
-    }
+headers = {
+    "Content-Type": "application/json",
+    "x-api-key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
+}
 
     payload = {
         "affc": "AFF-O20FT4UUAO",
