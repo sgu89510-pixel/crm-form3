@@ -1,75 +1,69 @@
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 import requests
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="")
+CORS(app)
 
+# ===== ОТДАЧА ФОРМЫ =====
 @app.route("/")
 def index():
-    return send_from_directory("", "lead_form.html")
+    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), "lead_form.html")
 
+# ===== ОТПРАВКА ЛИДА В CRM =====
+@app.route("/send_lead", methods=["POST"])
+def send_lead():
+    data = request.json
 
-def get_client_ip():
-    """Возвращает настоящий IP клиента (через Render proxy)"""
-    if request.headers.get('X-Forwarded-For'):
-        # Может быть несколько IP через запятую — берём первый
-        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
-    return request.remote_addr
+    # Получение корректного IP клиента
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        ip = forwarded.split(",")[0].strip()
+    else:
+        ip = "8.8.8.8"     # запасной IP, допустимый CRM
 
+    crm_url = "https://stormchg.biz/api/external/integration/lead"
 
-@app.route("/submit", methods=["POST"])
-def submit():
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-key": "a9e96a13-9d82-465c-a111-085b94756b81"
+    }
+
+    payload = {
+        "affc": "AFF-7HXBU5456B",
+        "bxc": "BX-6MWDHF8F519II",
+        "vtc": "VT-HP8XSRMKVS6E7",
+
+        "profile": {
+            "firstName": data.get("name", ""),
+            "lastName": data.get("lastname", ""),
+            "email": data.get("email", ""),
+            "password": "AutoGen123!",
+            "phone": data.get("phone", "").replace("+", "").replace(" ", "").replace("-", "")
+        },
+
+        "ip": ip,
+        "funnel": "kaz_atom",
+        "landingURL": "https://punk2077.onrender.com",
+        "geo": "KZ",
+        "lang": "ru",
+        "landingLang": "ru",
+        "userAgent": request.headers.get("User-Agent", "")
+    }
+
     try:
-        data = request.form.to_dict()
-
-        if not data:
-            return jsonify({"success": False, "error": "Нет данных"}), 400
-
-        client_ip = get_client_ip()
-
-        payload = {
-            "affc": "AFF-O20FT4UUAO",
-            "bxc": "BX-CL0XOBD3BRQ48",
-            "vtc": "VT-HP8XSRMKVS6E7",
-
-            "profile": {
-                "firstName": data.get("firstName", ""),
-                "lastName": data.get("lastName", ""),
-                "email": data.get("email", ""),
-                "password": "Temp12345!",
-                "phone": data.get("phone", "").replace("+", "")
-            },
-
-            "ip": client_ip,                     # ⭐ РЕАЛЬНЫЙ IP ЛИДА
-            "funnel": "AtomKz",
-            "landingURL": "https://mercedes-4371.onrender.com",
-            "geo": "KZ",
-            "lang": "ru",
-            "landingLang": "ru",
-            "comment": None
-        }
-
-        # ✔️ правильный URL
-        CRM_URL = "https://symbios.hn-crm.com/api/lead/create"
-
-        headers = {
-            "Content-Type": "application/json",
-            "Api-Key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
-        }
-
-        response = requests.post(CRM_URL, json=payload, headers=headers)
-
+        response = requests.post(crm_url, headers=headers, json=payload, timeout=30)
         return jsonify({
-            "success": True,
-            "crm_status": response.status_code,
             "crm_response": response.text,
-            "sent_payload": payload     # ← можно удалить, но удобно для дебага
+            "crm_status": response.status_code,
+            "success": response.ok
         })
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"error": str(e), "success": False})
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port, debug=False)
