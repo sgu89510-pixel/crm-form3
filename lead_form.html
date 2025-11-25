@@ -2,23 +2,25 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Регистрация</title>
+<title>Форма заявки</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
-<form id="leadForm">
+<h2>Форма заявки</h2>
 
-    <label>Имя:</label><br>
+<form id="leadForm">
+    Имя:<br>
     <input type="text" name="firstName" required><br><br>
 
-    <label>Фамилия:</label><br>
+    Фамилия:<br>
     <input type="text" name="lastName" required><br><br>
 
-    <label>Почта:</label><br>
+    Почта:<br>
     <input type="email" name="email" required><br><br>
 
-    <label>Телефон:</label><br>
-    <input type="text" name="phone" required placeholder="+7XXXXXXXXXX"><br><br>
+    Телефон:<br>
+    <input type="text" name="phone" required placeholder="+7700XXXXXXX"><br><br>
 
     <button type="submit">Отправить</button>
 </form>
@@ -38,14 +40,14 @@ document.getElementById("leadForm").addEventListener("submit", async function(e)
         phone: form.phone.value
     };
 
-    const response = await fetch("/send_lead", {
+    const res = await fetch("/send_lead", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
     });
 
-    const result = await response.json();
-    document.getElementById("result").innerText = "Ответ CRM: " + JSON.stringify(result);
+    const json = await res.json();
+    document.getElementById("result").innerText = "Ответ CRM: " + JSON.stringify(json);
 });
 </script>
 
