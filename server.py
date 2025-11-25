@@ -9,15 +9,15 @@ def index():
     return send_from_directory("", "lead_form.html")
 
 
-@app.route("/submit", methods=["POST"])
-def submit():
+@app.route("/send_lead", methods=["POST"])
+def send_lead():
     try:
-        data = request.form.to_dict()
+        data = request.get_json()
 
         if not data:
             return jsonify({"success": False, "error": "Нет данных"}), 400
 
-        # Получаем IP пользователя корректно
+        # Получение IP пользователя
         forwarded = request.headers.get("X-Forwarded-For", "")
         if forwarded:
             ip = forwarded.split(",")[0]
@@ -48,11 +48,11 @@ def submit():
             "comment": None
         }
 
-        CRM_URL = "https://symbios.hn-crm.com/api/external/integration/lead"
+        CRM_URL = "https://symbios.hn-crm.com/api/lead/create"
 
         headers = {
             "Content-Type": "application/json",
-            "x-api-key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
+            "Api-Key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
         }
 
         response = requests.post(CRM_URL, json=payload, headers=headers, timeout=25)
