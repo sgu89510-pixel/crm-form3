@@ -25,33 +25,32 @@ body {
 }
 label {
     display: block;
-    margin: 10px 0 5px;
+    margin-top: 10px;
     font-weight: bold;
 }
-input, select, textarea {
+input {
     width: 100%;
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    margin-bottom: 10px;
-    font-size: 15px;
+    margin-top: 5px;
 }
 button {
     width: 100%;
     padding: 12px;
+    margin-top: 15px;
     font-size: 17px;
     color: #fff;
     background: #007bff;
     border: none;
     border-radius: 6px;
-    cursor: pointer;
 }
 button:hover {
     background: #0069d9;
 }
 .result {
     margin-top: 15px;
-    padding: 10px;
+    padding: 12px;
     border-radius: 6px;
     font-weight: bold;
     display: none;
@@ -72,34 +71,16 @@ button:hover {
 <h2>Форма заявки</h2>
 
 <label>Имя *</label>
-<input id="name" required>
+<input id="firstName" required>
 
 <label>Фамилия *</label>
-<input id="lastname" required>
+<input id="lastName" required>
 
-<label>Страна *</label>
-<select id="country" required>
-    <option value="">Выберите страну</option>
-    <option value="США">США</option>
-    <option value="Китай">Китай</option>
-    <option value="Европа">Европа</option>
-</select>
+<label>Email *</label>
+<input id="email" type="email" required>
 
 <label>Телефон *</label>
-<input id="phone" required placeholder="+7XXXXXXXXXX">
-
-<label>Год авто *</label>
-<select id="car_year" required>
-    <option value="">Выберите год</option>
-    <script>
-        for (let y = 2025; y >= 2013; y--) {
-            document.write(`<option value="${y}">${y}</option>`);
-        }
-    </script>
-</select>
-
-<label>Комментарий</label>
-<textarea id="comment" rows="3"></textarea>
+<input id="phone" placeholder="+7XXXXXXXXXX" required>
 
 <button onclick="sendLead()">Отправить</button>
 
@@ -108,54 +89,46 @@ button:hover {
 </div>
 
 <script>
-// Маска телефона
+// Маска телефона +7
 document.getElementById("phone").addEventListener("input", function () {
     let v = this.value.replace(/\D/g, "");
     if (!v.startsWith("7")) v = "7" + v;
     this.value = "+" + v;
 });
 
-// Отправка данных
+// Отправка
 async function sendLead() {
-    const box = document.getElementById("result");
-    box.style.display = "block";
-    box.className = "result";
-    box.innerHTML = "⏳ Отправка...";
+    const result = document.getElementById("result");
+    result.style.display = "block";
+    result.className = "result";
+    result.innerHTML = "⏳ Отправка...";
 
     const data = {
-        name: document.getElementById("name").value.trim(),
-        lastname: document.getElementById("lastname").value.trim(),
-        country: document.getElementById("country").value.trim(),
+        firstName: document.getElementById("firstName").value.trim(),
+        lastName: document.getElementById("lastName").value.trim(),
+        email: document.getElementById("email").value.trim(),
         phone: document.getElementById("phone").value.trim(),
-        car_year: document.getElementById("car_year").value.trim(),
-        comment: document.getElementById("comment").value.trim()
     };
 
     try {
         const res = await fetch("/submit", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
             body: new URLSearchParams(data)
         });
 
         const json = await res.json();
 
         if (json.success) {
-            box.classList.add("success");
-            box.innerHTML =
-                "✔ Заявка успешно отправлена<br>" +
-                "Статус CRM: " + json.crm_status + "<br>" +
-                json.crm_response;
+            result.classList.add("success");
+            result.innerHTML = "✔ Заявка успешно отправлена<br>Статус CRM: " + json.crm_status;
         } else {
-            box.classList.add("error");
-            box.innerHTML = "✘ Ошибка CRM: " + (json.error || json.crm_response);
+            result.classList.add("error");
+            result.innerHTML = "✘ Ошибка CRM: " + (json.error || json.crm_response);
         }
 
     } catch (e) {
-        box.classList.add("error");
-        box.innerHTML = "✘ Ошибка отправки";
+        result.classList.add("error");
+        result.innerHTML = "✘ Ошибка отправки";
     }
 }
 </script>
