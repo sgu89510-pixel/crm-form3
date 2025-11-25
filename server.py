@@ -6,28 +6,26 @@ import os
 app = Flask(__name__, static_folder="")
 CORS(app)
 
-# ===== ОТДАЧА ФОРМЫ =====
 @app.route("/")
 def index():
     return send_from_directory(os.path.dirname(os.path.abspath(__file__)), "lead_form.html")
 
-# ===== ОТПРАВКА ЛИДА В CRM =====
 @app.route("/send_lead", methods=["POST"])
 def send_lead():
     data = request.json
 
-    # Получение корректного IP клиента
+    # Получаем IP пользователя корректно
     forwarded = request.headers.get("X-Forwarded-For", "")
     if forwarded:
         ip = forwarded.split(",")[0].strip()
     else:
-        ip = "8.8.8.8"     # запасной IP, допустимый CRM
+        ip = request.remote_addr
 
-    crm_url = "https://https://symbios.hn-crm.com/api/external/integration/lead"
+    crm_url = "https://symbios.hn-crm.com/api/v1/lead/create"
 
     headers = {
         "Content-Type": "application/json",
-        "x-api-key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
+        "Api-Key": "53486a07-a2fc-4811-9375-a4eb919f0cec"
     }
 
     payload = {
@@ -39,7 +37,7 @@ def send_lead():
             "firstName": data.get("name", ""),
             "lastName": data.get("lastname", ""),
             "email": data.get("email", ""),
-            "password": "AutoGen123!",
+            "password": "Temp12345!",
             "phone": data.get("phone", "").replace("+", "").replace(" ", "").replace("-", "")
         },
 
@@ -49,21 +47,21 @@ def send_lead():
         "geo": "KZ",
         "lang": "ru",
         "landingLang": "ru",
-        "userAgent": request.headers.get("User-Agent", "")
+        "userAgent": request.headers.get("User-Agent"),
+        "comment": None
     }
 
     try:
         response = requests.post(crm_url, headers=headers, json=payload, timeout=30)
+
         return jsonify({
             "crm_response": response.text,
             "crm_status": response.status_code,
             "success": response.ok
         })
-
     except Exception as e:
         return jsonify({"error": str(e), "success": False})
 
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port)
