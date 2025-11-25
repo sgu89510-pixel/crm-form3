@@ -9,6 +9,14 @@ def index():
     return send_from_directory("", "lead_form.html")
 
 
+def get_client_ip():
+    """Возвращает настоящий IP клиента (через Render proxy)"""
+    if request.headers.get('X-Forwarded-For'):
+        # Может быть несколько IP через запятую — берём первый
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    return request.remote_addr
+
+
 @app.route("/submit", methods=["POST"])
 def submit():
     try:
@@ -17,10 +25,13 @@ def submit():
         if not data:
             return jsonify({"success": False, "error": "Нет данных"}), 400
 
+        client_ip = get_client_ip()
+
         payload = {
             "affc": "AFF-O20FT4UUAO",
             "bxc": "BX-CL0XOBD3BRQ48",
             "vtc": "VT-HP8XSRMKVS6E7",
+
             "profile": {
                 "firstName": data.get("firstName", ""),
                 "lastName": data.get("lastName", ""),
@@ -28,7 +39,8 @@ def submit():
                 "password": "Temp12345!",
                 "phone": data.get("phone", "").replace("+", "")
             },
-            "ip": request.remote_addr,
+
+            "ip": client_ip,                     # ⭐ РЕАЛЬНЫЙ IP ЛИДА
             "funnel": "AtomKz",
             "landingURL": "https://mercedes-4371.onrender.com",
             "geo": "KZ",
@@ -37,7 +49,8 @@ def submit():
             "comment": None
         }
 
-        CRM_URL = "https://symbios.hn-crm.com/api/v1/lead/create"
+        # ✔️ правильный URL
+        CRM_URL = "https://symbios.hn-crm.com/api/lead/create"
 
         headers = {
             "Content-Type": "application/json",
@@ -49,7 +62,8 @@ def submit():
         return jsonify({
             "success": True,
             "crm_status": response.status_code,
-            "crm_response": response.text
+            "crm_response": response.text,
+            "sent_payload": payload     # ← можно удалить, но удобно для дебага
         })
 
     except Exception as e:
