@@ -2,11 +2,11 @@ from flask import Flask, request
 import requests
 import random
 import string
+import json
 
 app = Flask(__name__)
 
 def generate_password():
-    # минимум 8 символов, заглавная буква + спецсимвол
     return "A@" + ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 @app.route("/")
@@ -16,8 +16,8 @@ def index():
 @app.route("/submit", methods=["POST"])
 def submit():
 
+    # ДАННЫЕ, КОТОРЫЕ УХОДЯТ В CRM
     fields = {
-        # REQUIRED FIELDS — ВПИСАНЫ НАПРЯМУЮ
         "api_key": "3f50a5cd6aba6f7cf9be37684d359190",
         "map_id": 4176,
         "email": request.form.get("email"),
@@ -34,22 +34,45 @@ def submit():
     try:
         response = requests.post(
             "https://bestcliq.tech/api/v1/AddLead",
-            data=fields,          # ✅ form-urlencoded, как http_build_query
+            data=fields,
             timeout=15
         )
-        result = response.json()
+        crm_response_text = response.text
+        try:
+            crm_response_json = response.json()
+        except:
+            crm_response_json = crm_response_text
+
     except Exception as e:
-        return f"Ошибка запроса: {e}", 500
+        return f"<pre>Request error:\n{str(e)}</pre>", 500
 
-    if response.status_code == 200:
-        return """
-        <h2>Спасибо!</h2>
-        <p>Ваша заявка успешно отправлена.</p>
-        <p>Менеджер свяжется с вами в ближайшее время.</p>
-        """
-    else:
-        return f"<pre>{result}</pre>", 400
+    # 🔍 МАСКИРУЕМ API KEY ДЛЯ ОТОБРАЖЕНИЯ
+    safe_fields = fields.copy()
+    safe_fields["api_key"] = "********"
 
+    # ✅ HTML ОТВЕТ С REQUEST + RESPONSE
+    return f"""
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>CRM Debug</title>
+        <style>
+            body {{ font-family: monospace; background:#111; color:#0f0; padding:20px; }}
+            pre {{ background:#000; padding:15px; border:1px solid #0f0; }}
+            h2 {{ color:#00ffff; }}
+        </style>
+    </head>
+    <body>
+
+    <h2>📤 REQUEST TO CRM</h2>
+    <pre>{json.dumps(safe_fields, indent=2, ensure_ascii=False)}</pre>
+
+    <h2>📥 CRM RESPONSE</h2>
+    <pre>{json.dumps(crm_response_json, indent=2, ensure_ascii=False)}</pre>
+
+    </body>
+    </html>
+    """
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
