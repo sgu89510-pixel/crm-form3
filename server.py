@@ -44,7 +44,7 @@ def submit():
             "first_name": data["first_name"],
             "second_name": data["second_name"],
             "phone": data["phone"].replace("+", "").strip(),
-            "country": "RU",
+            "country": "ru",
             "language": "en",
             "campaign": "RuAutoEU",
             "description": "Auto lead from RU",
