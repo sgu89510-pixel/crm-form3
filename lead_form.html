@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Форма заявки</title>
+<title>RuAutoEU Lead Form</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
-<h2>Форма заявки</h2>
+<h2>RuAutoEU Lead Form</h2>
 
 <form id="leadForm">
-    Имя:<br>
-    <input type="text" name="firstName" required><br><br>
+    First Name:<br>
+    <input type="text" name="first_name" required><br><br>
 
-    Фамилия:<br>
-    <input type="text" name="lastName" required><br><br>
+    Last Name:<br>
+    <input type="text" name="second_name" required><br><br>
 
-    Почта:<br>
+    Email:<br>
     <input type="email" name="email" required><br><br>
 
-    Телефон:<br>
-    <input type="text" name="phone" required placeholder="+7700XXXXXXX"><br><br>
+    Phone:<br>
+    <input type="text" name="phone" required placeholder="+79990000000"><br><br>
 
-    <button type="submit">Отправить</button>
+    <button type="submit">Send</button>
 </form>
 
 <p id="result"></p>
@@ -32,22 +32,15 @@ document.getElementById("leadForm").addEventListener("submit", async function(e)
     e.preventDefault();
 
     const form = e.target;
-
-    const data = {
-        firstName: form.firstName.value,
-        lastName: form.lastName.value,
-        email: form.email.value,
-        phone: form.phone.value
-    };
+    const formData = new FormData(form);
 
     const res = await fetch("/submit", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
+        body: formData
     });
 
     const json = await res.json();
-    document.getElementById("result").innerText = "Ответ CRM: " + JSON.stringify(json);
+    document.getElementById("result").innerText = JSON.stringify(json, null, 2);
 });
 </script>
 
