@@ -19,7 +19,7 @@ def submit():
     fields = {
         # REQUIRED FIELDS — ВПИСАНЫ НАПРЯМУЮ
         "api_key": "3f50a5cd6aba6f7cf9be37684d359190",
-        "map_id": 4175,
+        "map_id": 4176,
         "email": request.form.get("email"),
         "first_name": request.form.get("first_name"),
         "second_name": request.form.get("second_name"),
