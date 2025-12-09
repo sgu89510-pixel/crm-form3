@@ -1,74 +1,55 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request
 import requests
-import os
 import random
 import string
 
 app = Flask(__name__)
 
-# Генерация валидного пароля
+API_URL = "https://bestcliq.tech/api/v1/AddLead"
+API_KEY = "3f50a5cd6aba6f7cf9be37684d359190"
+
+MAP_ID = 4175
+CAMPAIGN = "RuAutoEU"
+
 def generate_password():
-    letters = string.ascii_letters
-    digits = string.digits
-    special = "!@#$%^&*"
-    pwd = ''.join(random.choice(letters) for _ in range(5))
-    pwd += random.choice(digits)
-    pwd += random.choice(special)
-    return pwd
+    # Минимум 8 символов, заглавная буква + спецсимвол
+    return "A@" + ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 @app.route("/")
 def index():
-    return send_from_directory("", "lead_form.html")
-
+    return open("lead_form.html", encoding="utf-8").read()
 
 @app.route("/submit", methods=["POST"])
 def submit():
+    payload = {
+        "api_key": API_KEY,
+        "map_id": MAP_ID,
+        "email": request.form.get("email"),
+        "first_name": request.form.get("first_name"),
+        "second_name": request.form.get("second_name"),
+        "phone": request.form.get("phone"),
+        "country": "ru",            # ✅ geo маленькими буквами
+        "language": "ru",
+        "campaign": CAMPAIGN,
+        "description": "Лид с лендинга",
+        "password": generate_password()
+    }
+
     try:
-        data = request.form.to_dict()
-
-        # Проверка данных
-        required = ["first_name", "second_name", "phone", "email"]
-        for r in required:
-            if not data.get(r):
-                return jsonify({"success": False, "error": f"Missing field: {r}"}), 400
-
-        # IP пользователя
-        forwarded = request.headers.get("X-Forwarded-For", "")
-        ip = forwarded.split(",")[0] if forwarded else request.remote_addr
-
-        # Тело запроса
-        payload = {
-            "api_key": "3f50a5cd6aba6f7cf9be37684d359190",
-            "map_id": 4175,
-            "email": data["email"],
-            "first_name": data["first_name"],
-            "second_name": data["second_name"],
-            "phone": data["phone"].replace("+", "").strip(),
-            "country": "ru",
-            "language": "en",
-            "campaign": "RuAutoEU",
-            "description": "Auto lead from RU",
-            "password": generate_password()
-        }
-
-        url = "https://bestcliq.tech/api/v1/AddLead"
-
-        response = requests.post(url, data=payload)
-
-        return jsonify({
-            "success": True,
-            "crm_status": response.status_code,
-            "crm_response": response.text,
-            "sent_payload": payload
-        })
-
+        response = requests.post(API_URL, data=payload, timeout=15)
+        result = response.json()
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        return f"Ошибка отправки заявки: {str(e)}", 500
+
+    if response.status_code == 200:
+        return """
+        <h2>Спасибо!</h2>
+        <p>Ваша заявка успешно отправлена.</p>
+        <p>Менеджер свяжется с вами в ближайшее время.</p>
+        """
+    else:
+        return f"Ошибка API: {result}", 400
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=10000)
