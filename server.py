@@ -19,7 +19,7 @@ def submit():
     # ДАННЫЕ, КОТОРЫЕ УХОДЯТ В CRM
     fields = {
         "api_key": "3f50a5cd6aba6f7cf9be37684d359190",
-        "map_id": 4176,
+        "map_id": 4184,
         "email": request.form.get("email"),
         "first_name": request.form.get("first_name"),
         "second_name": request.form.get("second_name"),
