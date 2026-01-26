@@ -24,7 +24,7 @@ def submit():
         "first_name": request.form.get("first_name"),
         "second_name": request.form.get("second_name"),
         "phone": request.form.get("phone"),
-        "country": "RU",
+        "country": "PL",
         "language": "ru",
         "campaign": "Test",
         "description": "Лид с лендинга",
